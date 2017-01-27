@@ -2,20 +2,27 @@ package com.tutorial.myfirst3dgame;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.assets.loaders.ModelLoader;
 import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.g3d.*;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
+import com.badlogic.gdx.graphics.g3d.loader.ObjLoader;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
+import com.badlogic.gdx.utils.Array;
 
 public class MyFirst3DGame extends ApplicationAdapter {
 	public PerspectiveCamera cam;
 	public ModelBatch modelBatch;
-	public Model model;
-	public ModelInstance instance;
+	public Model model, modelImported;
+	public ModelInstance instance, instanceImported;
 	public Environment environment;
 	public CameraInputController camController;
+	public AssetManager assets;
+	public Array<ModelInstance> instances = new Array<ModelInstance>();
+	public boolean loading;
 	
 	@Override
 	public void create () {
@@ -32,7 +39,7 @@ public class MyFirst3DGame extends ApplicationAdapter {
         model = modelBuilder.createBox(5f, 5f, 5f,
                 new Material(ColorAttribute.createDiffuse(Color.GREEN)),
                 VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
-        instance = new ModelInstance(model);
+        instances.add(new ModelInstance(model));
 
         environment = new Environment();
         environment.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f, 1f));
@@ -40,15 +47,35 @@ public class MyFirst3DGame extends ApplicationAdapter {
 
         camController = new CameraInputController(cam);
         Gdx.input.setInputProcessor(camController);
+
+        assets = new AssetManager();
+        assets.load("data/ship/ship.g3db", Model.class);
+        loading = true;
 	}
+
+	private void doneLoading() {
+	    Model ship = assets.get("data/ship/ship.g3db", Model.class);
+	    for (float x = 0f; x <= 6f; x += 2f) {
+	        for (float z = 0f; z <= 4f; z += 2f) {
+                ModelInstance shipInstance = new ModelInstance(ship, x, 3f, z);
+                instances.add(shipInstance);
+            }
+        }
+	    loading = false;
+    }
 
 	@Override
 	public void render () {
+	    if (loading && assets.update())
+	        doneLoading();
+
 	    camController.update();
+
 	    Gdx.gl.glViewport(0,0,Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+
 		modelBatch.begin(cam);
-		modelBatch.render(instance, environment);
+		modelBatch.render(instances, environment);
 		modelBatch.end();
 	}
 	
@@ -56,5 +83,7 @@ public class MyFirst3DGame extends ApplicationAdapter {
 	public void dispose () {
 	    modelBatch.dispose();
 	    model.dispose();
+	    instances.clear();
+	    assets.dispose();
 	}
 }
