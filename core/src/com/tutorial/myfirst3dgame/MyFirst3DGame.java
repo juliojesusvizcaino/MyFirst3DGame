@@ -51,37 +51,33 @@ public class MyFirst3DGame extends ApplicationAdapter {
         setCam();
 
         assets = new AssetManager();
-        assets.load("data/ship.obj", Model.class);
-        assets.load("data/block.obj", Model.class);
-        assets.load("data/invader.obj", Model.class);
-        assets.load("data/spacesphere.obj", Model.class);
+        assets.load("data/invaders.g3db", Model.class);
         loading = true;
 	}
 
 	private void doneLoading() {
-	    ship = new ModelInstance(assets.get("data/ship.obj", Model.class));
+	    Model model = assets.get("data/invaders.g3db", Model.class);
+	    ship = new ModelInstance(model, "ship");
 	    ship.transform.setToRotation(Vector3.Y, 180).trn(0,0,6f);
 	    instances.add(ship);
 
-	    Model blockModel = assets.get("data/block.obj", Model.class);
 	    for (float x = -5f; x <=5f; x+= 2f) {
-	        ModelInstance block = new ModelInstance(blockModel);
+	        ModelInstance block = new ModelInstance(model, "block");
             block.transform.setToTranslation(x, 0, 3f);
             instances.add(block);
             blocks.add(block);
         }
 
-        Model invaderModel = assets.get("data/invader.obj", Model.class);
 	    for (float x = -5f; x <= 5f; x += 2f) {
 	        for (float z = -8f; z <= 0; z += 2f) {
-	            ModelInstance invader = new ModelInstance(invaderModel);
+	            ModelInstance invader = new ModelInstance(model, "invader");
 	            invader.transform.setToTranslation(x, 0, z);
 	            instances.add(invader);
 	            invaders.add(invader);
             }
         }
 
-        space = new ModelInstance(assets.get("data/spacesphere.obj", Model.class));
+        space = new ModelInstance(model, "space");
 
 	    loading = false;
     }
